@@ -12,7 +12,7 @@ Command line arguments:
     [path] [from]-[to] [offset]
 
 `path`: the path of input PDF file <br>
-`from`: the page number where the catalog ends starts<br>
+`from`: the page number where the catalog page starts<br>
 `to`: the page number where the catalog page ends<br>
 `offset`: number of pages ahead the first chapter
 

@@ -49,7 +49,7 @@ public class Bookmark {
 			"[" + Constants.Punctuation + "]{3,}",
 //			"[" + punctuation + "](\\w)(\\1\\1|\\1)+[" + punctuation + "]",
 			"(^ *)|( *$)",
-			"(?<!^Chapter ?)0*" + page + "[^\\d]*$",
+			"(?<!^Chapter ?)0*" + page + " *$",
 			"[" + Constants.NonEndPunctuation + " ]+$",
 			"^ *\\d+ *$",
 			"^[" + Constants.Punctuation + " ]*[" + Constants.AllAscii + Constants.ZhCn + "][" + Constants.Punctuation + " ]*$"
@@ -63,7 +63,7 @@ public class Bookmark {
 	}
 	
 	private int extractPage(String title) {
-		final Pattern pattern = Pattern.compile("^.*[^\\d]+(\\d+)[^\\d]*$");
+		final Pattern pattern = Pattern.compile("^.*[^\\d]+(\\d+) *$");
 		Matcher matcher = pattern.matcher(title);
 		if(matcher.matches()) {
 			try{

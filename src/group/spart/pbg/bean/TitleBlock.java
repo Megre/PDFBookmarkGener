@@ -59,7 +59,7 @@ public class TitleBlock {
 	
 	@Override
 	public String toString() {
-		return String.format("\n{%s %d %.2f %.2f %.2f %.2f %.2f}", 
+		return String.format("\n{%s, page: %d, rect: %.2f %.2f %.2f %.2f, avgH: %.2f}", 
 				text, locationPage, rect.getX(), rect.getY(), rect.getWidth(), rect.getHeight(), averageHeight);
 	}
 	

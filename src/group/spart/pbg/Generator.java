@@ -1,14 +1,7 @@
 package group.spart.pbg;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.List;
-import com.itextpdf.kernel.pdf.PdfDocument;
-import com.itextpdf.kernel.pdf.PdfName;
-import com.itextpdf.kernel.pdf.PdfReader;
-import com.itextpdf.kernel.pdf.PdfWriter;
-import group.spart.pbg.bean.TitleBlock;
 
 /** 
  * 
@@ -18,13 +11,14 @@ import group.spart.pbg.bean.TitleBlock;
  */
 public class Generator {
 	
-	private final String usage = "Command line arguments: [path] [from]-[to] [offset]\n"
+	private final String usage = "Command line arguments: [path] [from]-[to] [offset] [column]\n"
 			+ "path: the path of input PDF file\n"
-			+ "from: the page number where the catalog ends starts\n"
+			+ "from: the page number where the catalog page starts\n"
 			+ "to: the page number where the catalog page ends\n"
-			+ "offset: number of pages ahead the first chapter";
+			+ "offset: number of pages ahead the first chapter\n"
+			+ "column (optional, default: 1): number of layout columns of the catalog\n";
 	
-	private int pageOffset, pageFrom, pageTo;
+	private int pageOffset, pageFrom, pageTo, column = 1;
 	private String inputFilePath;
 	
     public static void main(String[] args) throws IOException {
@@ -38,45 +32,15 @@ public class Generator {
     }
  
     private void generate() {
-    	File pdfFile = new File(inputFilePath);
-    	PdfReader reader = null;
-		try {
-			reader = new PdfReader(pdfFile);
-		} catch (IOException e) {
-			System.out.println(e.getMessage());
-		}
-		
-    	PdfDocument document = new PdfDocument(reader);
     	
     	// process content page 
-    	TextRender listener = new TextRender(document);
-    	List<List<TitleBlock>> infoLists = listener.processPages(pageFrom, pageTo);
-
-    	// copy PDF file
-    	String shortName = pdfFile.getName();
-    	shortName = shortName.substring(0, shortName.lastIndexOf("."));
-    	File newFile = new File(pdfFile.getParentFile().getAbsolutePath() + "\\" + shortName + "_PBG.pdf");
-    	PdfWriter writer = null;
-		try {
-			writer = new PdfWriter(newFile);
-		} catch (FileNotFoundException e) {
-			System.out.println(e.getMessage());
-		}
-    	PdfDocument newDocument = new PdfDocument(writer);
-    	document.copyPagesTo(1, document.getNumberOfPages(), newDocument);
-    	document.close();
+    	TitleExtractor titleExtractor = new TitleExtractor(new File(inputFilePath));
+    	titleExtractor.extract(pageFrom, pageTo, pageOffset, column);    	
     	
-    	// add bookmarks
-    	new BookmarkExtractor(infoLists, newDocument).extract(pageFrom, pageTo, pageOffset);
-    	newDocument.getCatalog().setPageMode(PdfName.UseOutlines);
-    	
-    	newDocument.close();
-    	
-    	System.out.println("Output path: " + newFile.getAbsolutePath());
     }
     
     private boolean parseParam(String[] args) {
-    	if(args.length != 3) {
+    	if(args.length < 3) {
     		printUsage();
     		return false;
     	}
@@ -85,7 +49,7 @@ public class Generator {
     	
     	inputFilePath = args[paramIdx++];
     	
-    	// from-to
+    	// from-to, pageOffset, column
     	String[] fromTo = args[paramIdx++].split("-");
     	if(fromTo.length != 2) {
     		printUsage();
@@ -96,6 +60,10 @@ public class Generator {
     		pageFrom = Integer.parseInt(fromTo[0]);
     		pageTo = Integer.parseInt(fromTo[1]);
     		pageOffset = Integer.parseInt(args[paramIdx++]);
+    		
+    		if(args.length > 3) {
+    			column = Integer.parseInt(args[paramIdx++]);
+    		}
     	}
     	catch (NumberFormatException e) {
 			System.out.println(e.getMessage());
