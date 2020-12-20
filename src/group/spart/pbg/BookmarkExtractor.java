@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfOutline;
+import com.itextpdf.kernel.pdf.PdfPage;
 import com.itextpdf.kernel.pdf.action.PdfAction;
 import com.itextpdf.kernel.pdf.navigation.PdfExplicitDestination;
 
@@ -41,7 +42,7 @@ public class BookmarkExtractor {
 	public void extract(int pageFrom, int pageTo, int pageOffset) {
 		fRootOutline = fDocument.getOutlines(false);
 		
-		PdfOutline content = addOutline(fRootOutline, 1, "目录", pageFrom);
+		PdfOutline content = addOutline(fRootOutline, 1, "Content", pageFrom);
 		
 		// the sates used across pages
 		updateState(pageFrom, content, 1);
@@ -51,6 +52,11 @@ public class BookmarkExtractor {
 		}
 	}
 	
+	/**
+	 * Process columns of a catalog page
+	 * @param pageColumns column(s) of a page
+	 * @param pageOffset
+	 */
 	private void processOnePage(PageColumns pageColumns, int pageOffset) {
 		for(int colIdx = 0; colIdx < pageColumns.columnSize(); ++colIdx) {
 			processOneColumn(pageColumns.getBlockList(colIdx), pageOffset);
@@ -132,36 +138,31 @@ public class BookmarkExtractor {
 	 */
 	private PdfOutline addOutline(PdfOutline parentOutline, int level, String title, int page) {
 		if(parentOutline == null) { // detect the parent of current outline
-			int lastLevel = outlineLevelMap.get(fLastOutline);
-	    	if(level == lastLevel) {
-	    		parentOutline = fLastOutline.getParent();
-	    	}
-	    	else if(level > lastLevel) {
-	    		parentOutline = fLastOutline;
-	    	}
-	    	else {
-	    		parentOutline = fLastOutline.getParent(); 
-
-	    		while(parentOutline != null) {
-	    			if(outlineLevelMap.containsKey(parentOutline)) {
-	    				int thisLevel = outlineLevelMap.get(parentOutline);
-	    				if(level == thisLevel) {
-	    					parentOutline = parentOutline.getParent();
-	    					break;
-	    				}
-	    				if(level > thisLevel) {
-	    					break;
-	    				}
-	    			}
-	    			parentOutline = parentOutline.getParent();
-	    		}
-	    		if(parentOutline==null)
-	    			parentOutline = fRootOutline;
-	    	}
+    		parentOutline = fLastOutline; 
+    		while(parentOutline != null) {
+    			if(outlineLevelMap.containsKey(parentOutline)) {
+    				int cursorLevel = outlineLevelMap.get(parentOutline);
+    				if(level == cursorLevel) {
+    					parentOutline = parentOutline.getParent();
+    					break;
+    				}
+    				if(level > cursorLevel) {
+    					break;
+    				}
+    			}
+    			parentOutline = parentOutline.getParent();
+    		}
+    		
+    		if(parentOutline==null) parentOutline = fRootOutline;
 		}
 		
     	PdfOutline curOutline = parentOutline.addOutline(title);
-    	curOutline.addAction(PdfAction.createGoTo(PdfExplicitDestination.createFitH(fDocument.getPage(page-1), 0)));
+    	PdfPage target = fDocument.getPage(page);
+    	PdfExplicitDestination destination = PdfExplicitDestination.createFitH(target, 
+    			target.getPageSize().getHeight());
+    	curOutline.addAction(PdfAction.createGoTo(destination));
+    	curOutline.setOpen(level < 3);
+    	
     	return curOutline;
 	}
 	

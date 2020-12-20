@@ -19,13 +19,13 @@ import group.spart.pbg.bean.PageColumns;
  * @email renhao.x@seu.edu.cn
  * @version created on: Dec 19, 2020 2:17:16 PM 
  */
-public class TitleExtractor {
+public class CatalogExtractor {
 	
 	private PdfDocument fDocument;
 	private File fPdfFile, fSavedFile;
 	private List<PageColumns> fPageColumnList = new ArrayList<>();
 	
-	public TitleExtractor(File pdfFile) {
+	public CatalogExtractor(File pdfFile) {
     	PdfReader reader = null;
 		try {
 			reader = new PdfReader(pdfFile);
@@ -36,6 +36,14 @@ public class TitleExtractor {
 		fPdfFile = pdfFile;
 	}
 	
+	/**
+	 * Extract catalog pages.
+	 * @param pageFrom the page number that the catalog starts
+	 * @param pageTo the page number that the catalog ends
+	 * @param pageOffset number of pages ahead the first chapter
+	 * @param column number of columns of the catalog
+	 * @return extracted columns of all catalog pages
+	 */
 	public List<PageColumns> extract(int pageFrom, int pageTo, int pageOffset, int column) {
 		TextRender render = new TextRender(fDocument);
 		PageColumns pageColumns = null;
@@ -51,6 +59,8 @@ public class TitleExtractor {
 	
 	private void addBookmarks(int pageFrom, int pageTo, int pageOffset) {
 		PdfDocument newDocument = copyPdf();
+		if(newDocument == null) return;
+		
     	new BookmarkExtractor(fPageColumnList, newDocument).extract(pageFrom, pageTo, pageOffset);
     	newDocument.getCatalog().setPageMode(PdfName.UseOutlines);
     	newDocument.close();
@@ -68,6 +78,7 @@ public class TitleExtractor {
 			writer = new PdfWriter(fSavedFile);
 		} catch (FileNotFoundException e) {
 			System.out.println(e.getMessage());
+			return null;
 		}
     	PdfDocument newDocument = new PdfDocument(writer);
     	fDocument.copyPagesTo(1, fDocument.getNumberOfPages(), newDocument);

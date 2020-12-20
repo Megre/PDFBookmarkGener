@@ -34,7 +34,7 @@ public class Generator {
     private void generate() {
     	
     	// process content page 
-    	TitleExtractor titleExtractor = new TitleExtractor(new File(inputFilePath));
+    	CatalogExtractor titleExtractor = new CatalogExtractor(new File(inputFilePath));
     	titleExtractor.extract(pageFrom, pageTo, pageOffset, column);    	
     	
     }
