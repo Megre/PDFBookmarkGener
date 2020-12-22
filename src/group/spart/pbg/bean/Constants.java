@@ -11,7 +11,7 @@ public class Constants {
 			HeightOffset = 3.0f,
 			SubLevelOffset = 10.0f;
 	
-	public static String AllAscii = "\\x21-\\x7e",
+	public static final String AllAscii = "\\x21-\\x7e",
 			AsciiPunctuation = "\\x21-\\x2f\\x3a-\\x40\\x5b-\\x60\\x7b-\\x7e",
 			ZhCn = "\\u4e00-\\u9fa5\\u3400-\\u4db5",
 			ZhCnPunctuation = "\\u3002\\uff1b\\uff0c\\uff1a\\u201c\\u201d\\uff08\\uff09\\u3001\\uff1f\\u300a\\u300b",

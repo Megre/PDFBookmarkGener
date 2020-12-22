@@ -18,7 +18,7 @@ import group.spart.pbg.bean.PageColumns;
 import group.spart.pbg.bean.TitleBlock;
 
 /** 
- * 
+ * Extract and add bookmarks from titles.
  * @author megre
  * @email renhao.x@seu.edu.cn
  * @version created on: Dec 14, 2020 11:22:07 AM 
@@ -26,6 +26,8 @@ import group.spart.pbg.bean.TitleBlock;
 public class BookmarkExtractor {
 	private List<PageColumns> fPageColumnsList;
 	private PdfDocument fDocument;
+	private int fPageFrom;
+	private int fPageOffset;
 	
 	// processing status
 	private int fPrePage;
@@ -40,6 +42,8 @@ public class BookmarkExtractor {
 	}
 	
 	public void extract(int pageFrom, int pageTo, int pageOffset) {
+		fPageFrom = pageFrom;
+		fPageOffset = pageOffset;
 		fRootOutline = fDocument.getOutlines(false);
 		
 		PdfOutline content = addOutline(fRootOutline, 1, "Content", pageFrom);
@@ -108,7 +112,7 @@ public class BookmarkExtractor {
 	 */
 	private int detectPage(int page, List<TitleBlock> validTitleInfo, int idx, Map<TitleBlock, Bookmark> titleBookmarMap) {
 		int rst = page;
-		if(page < 1 || page > fDocument.getNumberOfPages()) {
+		if(page < 1 || page + fPageOffset > fDocument.getNumberOfPages()) {
 	    	// use the page of following titles
 	    	int nextPage = -1;
 			if(idx + 1 < validTitleInfo.size()) {
@@ -117,7 +121,7 @@ public class BookmarkExtractor {
 					nextPage = nextBookmarkInfo.getPage();
 					if(nextPage > 0 
 							&& nextPage > fPrePage 
-							&& nextPage < fDocument.getNumberOfPages()) {
+							&& nextPage + fPageOffset < fDocument.getNumberOfPages()) {
 						break;
 					}
 				}
@@ -125,6 +129,11 @@ public class BookmarkExtractor {
 			
     		rst = nextPage;
     	}
+		
+		if(rst < 1) {
+			return fPrePage>0?fPrePage:fPageFrom;
+		}
+		
 		return rst;
 	}
 	

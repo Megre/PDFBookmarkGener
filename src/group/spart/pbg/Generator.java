@@ -1,7 +1,7 @@
 package group.spart.pbg;
 
 import java.io.File;
-import java.io.IOException;
+import group.spart.pbg.err.ExtractionException;
 
 /** 
  * 
@@ -11,31 +11,42 @@ import java.io.IOException;
  */
 public class Generator {
 	
+	// input arguments
+	private int pageOffset, pageFrom, pageTo, column = 1;
+	private String inputFilePath;
+	
 	private final String usage = "Command line arguments: [path] [from]-[to] [offset] [column]\n"
 			+ "path: the path of input PDF file\n"
 			+ "from: the page number where the catalog page starts\n"
 			+ "to: the page number where the catalog page ends\n"
 			+ "offset: number of pages ahead the first chapter\n"
-			+ "column (optional, default: 1): number of layout columns of the catalog\n";
+			+ "column (optional, default: 1): number of layout columns of the catalog\n"
+			+ "The output file is in the same path of the input file, whose name is appended with \"_PBG\".\n"
+			+ "https://github.com/Megre/PDFBookmarkGener";
 	
-	private int pageOffset, pageFrom, pageTo, column = 1;
-	private String inputFilePath;
+	private final String fDebugFlag = "_debug_PDFBookmarkGener_";
 	
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) {
     	Generator gener = new Generator();
     	
-    	if(!gener.parseParam(args)) {
-    		return;
+    	if(gener.parseParam(args)) {
+    		gener.generate();
     	}
-    	
-    	gener.generate();
     }
- 
+    
     private void generate() {
     	
-    	// process content page 
-    	CatalogExtractor titleExtractor = new CatalogExtractor(new File(inputFilePath));
-    	titleExtractor.extract(pageFrom, pageTo, pageOffset, column);    	
+    	try {
+	    	CatalogExtractor titleExtractor = new CatalogExtractor(new File(inputFilePath));
+	    	titleExtractor.extract(pageFrom, pageTo, pageOffset, column);    
+    	}
+    	catch (ExtractionException e) {
+			printMessage(e);
+			printUsage();
+		}
+    	catch (Exception e) {
+    		printMessage(e);
+    	}
     	
     }
     
@@ -66,7 +77,7 @@ public class Generator {
     		}
     	}
     	catch (NumberFormatException e) {
-			System.out.println(e.getMessage());
+			printMessage(e);
 			return false;
 		}
     	
@@ -75,5 +86,11 @@ public class Generator {
     
     private void printUsage() {
     	System.out.println(usage);
+    }
+    
+    private void printMessage(Exception e) {
+    	String debug = System.getenv(fDebugFlag);
+    	if("true".equals(debug)) e.printStackTrace();
+    	else System.err.println(e.getMessage());
     }
 }

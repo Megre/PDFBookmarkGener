@@ -9,7 +9,7 @@ The input PDF file should contains text. For PDF file created from images, PDF e
 
 Command line arguments: 
 
-    [path] [from]-[to] [offset] [column]
+    java -jar PDFBookmarkGener.jar [path] [from]-[to] [offset] [column]
 
 `path`: the path of input PDF file <br>
 `from`: the page number where the catalog page starts<br>
